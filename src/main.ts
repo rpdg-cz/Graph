@@ -354,7 +354,7 @@ const loopInfo = makeInfoCard('self-loops', 'Self-loop support', [
 ]);
 const shortcutInfo = makeInfoCard('shortcuts', 'Quick reference', [
   makeList([
-    makeInfoBlock(['Force: ', 'drag a node to move it, click it to fix or unfix.']),
+    makeInfoBlock(['Force: ', 'drag a node to move it, double-click to fix or unfix.']),
     makeInfoBlock(['Draw: ', 'click canvas for a node, click two nodes for an edge, click one node twice for a loop.']),
     makeInfoBlock(['Edit: ', 'click a node or edge label to rename it.']),
     makeInfoBlock(['Delete: ', 'click a node or edge to remove it.']),
@@ -591,7 +591,7 @@ function renderHelp(nextMode: ViewMode): void {
     helpPanel.appendChild(makeList([
       'Drag and drop a node to move it.',
       'The node becomes fixed when the drag ends.',
-      'Click a node to fix or unfix it.',
+      'Double-click a node to fix or unfix it.',
     ]));
   } else if (nextMode === 'Draw') {
     helpPanel.appendChild(makeInfoBlock(['Create nodes and edges directly on the canvas.']));
@@ -624,7 +624,7 @@ function renderHelp(nextMode: ViewMode): void {
 
 function updateModeHint(): void {
   const hints: Record<ViewMode, string> = {
-    Force: 'Drag nodes to arrange the graph. Click a node to fix or unfix it.',
+    Force: 'Drag nodes to arrange the graph. Double-click a node to fix or unfix it.',
     Draw: 'Click empty canvas for a node. Click the same node twice for a self-loop.',
     Edit: 'Click a node or an edge label to rename it.',
     Delete: 'Click a node or edge to delete it.',
@@ -819,7 +819,6 @@ function handleNodeDragEnd(nodeId: string, moved: boolean): void {
   simulation.setDragging(null);
   const node = model.getNode(nodeId);
   if (node && moved) {
-    node.fixed = true;
     if (dragBefore) {
       pushHistory(dragBefore);
     }

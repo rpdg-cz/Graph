@@ -58,6 +58,8 @@ export class GraphRenderer {
   private suppressClick = false;
   private measureContext: CanvasRenderingContext2D | null;
   private editorInput: HTMLInputElement | null = null;
+  private lastNodeClickId: string | null = null;
+  private lastNodeClickTime = 0;
 
   constructor(svg: SVGSVGElement, overlay: HTMLDivElement, model: GraphModel, callbacks: RendererCallbacks) {
     this.svg = svg;
@@ -403,6 +405,24 @@ export class GraphRenderer {
       }
       this.callbacks.onNodeDragEnd(state.nodeId, state.moved);
       this.suppressClick = state.moved;
+      if (state.moved) {
+        this.lastNodeClickId = null;
+        this.lastNodeClickTime = 0;
+      } else if (this.isForceMode()) {
+        const now = performance.now();
+        if (this.lastNodeClickId === state.nodeId) {
+          if (now - this.lastNodeClickTime <= 350) {
+            this.lastNodeClickId = null;
+            this.lastNodeClickTime = 0;
+            this.callbacks.onNodeToggleFixed(state.nodeId);
+          } else {
+            this.lastNodeClickTime = now;
+          }
+        } else {
+          this.lastNodeClickId = state.nodeId;
+          this.lastNodeClickTime = now;
+        }
+      }
       window.setTimeout(() => {
         this.suppressClick = false;
       }, 0);
@@ -427,9 +447,6 @@ export class GraphRenderer {
       const edgeId = edgeElement ? edgeElement.getAttribute('data-edge-id') : null;
 
       if (this.isForceMode()) {
-        if (nodeId) {
-          this.callbacks.onNodeToggleFixed(nodeId);
-        }
         return;
       }
 
