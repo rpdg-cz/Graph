@@ -566,7 +566,7 @@ function setMode(nextMode: ViewMode): void {
   helpPanel.hidden = nextMode === 'Config';
   configPanel.hidden = nextMode !== 'Config';
   updateModeHint();
-  if (nextMode === 'Force') {
+  if (isForceInteractive(nextMode)) {
     simulation.wake();
   } else {
     simulation.stop();
@@ -586,7 +586,7 @@ function renderHelp(nextMode: ViewMode): void {
     Config: 'Config',
   };
   helpPanel.appendChild(el('h3', undefined, titleMap[nextMode]));
-  if (nextMode === 'Force') {
+  if (isForceInteractive(nextMode)) {
     helpPanel.appendChild(makeInfoBlock(['A light force layout keeps the graph centered and readable.']));
     helpPanel.appendChild(makeList([
       'Drag and drop a node to move it.',
@@ -628,7 +628,7 @@ function updateModeHint(): void {
     Draw: 'Click empty canvas for a node. Click the same node twice for a self-loop.',
     Edit: 'Click a node or an edge label to rename it.',
     Delete: 'Click a node or edge to delete it.',
-    Config: 'Adjust radius, colors, loop spacing, and export resolution.',
+    Config: 'Adjust settings while the force layout stays interactive; drag nodes as in Force mode.',
   };
   modeHint.textContent = hints[mode];
   stagePanel.setAttribute('data-mode', mode);
@@ -695,6 +695,10 @@ function pushHistory(snapshot: GraphSnapshot): void {
   updateHistoryButtons();
 }
 
+function isForceInteractive(activeMode: ViewMode): boolean {
+  return activeMode === 'Config' ? true : activeMode === 'Force';
+}
+
 function afterMutation(syncMode: string = 'full', before?: GraphSnapshot): void {
   renderer.render();
   updateControls();
@@ -706,7 +710,7 @@ function afterMutation(syncMode: string = 'full', before?: GraphSnapshot): void 
   updateMeta();
   syncConfigValues();
   updateHistoryButtons();
-  if (mode === 'Force') {
+  if (isForceInteractive(mode)) {
     simulation.wake();
   }
   scheduleSave();

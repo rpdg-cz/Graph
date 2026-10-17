@@ -335,13 +335,17 @@ export class GraphRenderer {
     return Math.max(10, text.length * fontSize * 0.58);
   }
 
+  private isForceMode(): boolean {
+    return this.mode === 'Config' ? true : this.mode === 'Force';
+  }
+
   private attachEvents(): void {
     this.svg.addEventListener('pointerdown', (event: PointerEvent) => {
       if (event.button !== 0) {
         return;
       }
       const nodeElement = this.findNodeElement(event.target);
-      if (this.mode === 'Force' && nodeElement) {
+      if (this.isForceMode() && nodeElement) {
         const nodeId = nodeElement.getAttribute('data-node-id');
         const node = nodeId ? this.model.getNode(nodeId) : undefined;
         if (nodeId && node) {
@@ -422,7 +426,7 @@ export class GraphRenderer {
       const nodeId = nodeElement ? nodeElement.getAttribute('data-node-id') : null;
       const edgeId = edgeElement ? edgeElement.getAttribute('data-edge-id') : null;
 
-      if (this.mode === 'Force') {
+      if (this.isForceMode()) {
         if (nodeId) {
           this.callbacks.onNodeToggleFixed(nodeId);
         }

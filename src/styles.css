@@ -963,3 +963,12 @@ a:hover {
     margin-left: 0;
   }
 }
+
+
+#graph-svg[data-mode='config'] .node {
+  cursor: grab;
+}
+
+#graph-svg[data-mode='config'] .node:active {
+  cursor: grabbing;
+}
