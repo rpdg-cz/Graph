@@ -115,26 +115,32 @@ export function computeEdgeGeometry(model: GraphModel, edge: GraphEdge): EdgeGeo
   const group = model.edges.filter((item) => item.source !== item.target && pairKey(item) === pairKey(edge));
   const orderedGroup = [...group].sort((a, b) => a.id.localeCompare(b.id));
   const groupIndex = Math.max(0, orderedGroup.findIndex((item) => item.id === edge.id));
-  const hasReverse = group.some((item) => item.source === edge.target && item.target === edge.source);
-  let bend = 0;
-
-  if (model.settings.directed && hasReverse) {
-    const sameDirection = orderedGroup.filter((item) => item.source === edge.source && item.target === edge.target);
-    const directionIndex = Math.max(0, sameDirection.findIndex((item) => item.id === edge.id));
-    bend = 25 + directionIndex * 24;
-  } else if (group.length > 1) {
-    bend = (groupIndex - (group.length - 1) / 2) * 26;
-  }
-
   const dx = target.x - source.x;
   const dy = target.y - source.y;
   const distance = Math.max(0.001, Math.sqrt(dx * dx + dy * dy));
   const unit = { x: dx / distance, y: dy / distance };
-  const perpendicular = { x: -unit.y, y: unit.x };
+  const canonicalFirstId = edge.source < edge.target ? edge.source : edge.target;
+  const canonicalUnit = edge.source === canonicalFirstId ? unit : { x: -unit.x, y: -unit.y };
+  const canonicalPerpendicular = { x: -canonicalUnit.y, y: canonicalUnit.x };
   const middle = {
     x: (source.x + target.x) / 2,
     y: (source.y + target.y) / 2,
   };
+
+  let bend = 0;
+  if (model.settings.directed) {
+    const hasReverse = group.some((item) => item.source === edge.target && item.target === edge.source);
+    if (hasReverse) {
+      const sameDirection = orderedGroup.filter((item) => item.source === edge.source && item.target === edge.target);
+      const directionIndex = Math.max(0, sameDirection.findIndex((item) => item.id === edge.id));
+      const side = edge.source === canonicalFirstId ? 1 : -1;
+      bend = side * (25 + directionIndex * 24);
+    } else if (group.length > 1) {
+      bend = (groupIndex - (group.length - 1) / 2) * 26;
+    }
+  } else if (group.length > 1) {
+    bend = (groupIndex - (group.length - 1) / 2) * 26;
+  }
 
   if (Math.abs(bend) < 0.01) {
     const start = {
@@ -151,8 +157,8 @@ export function computeEdgeGeometry(model: GraphModel, edge: GraphEdge): EdgeGeo
       path,
       hitPath: path,
       labelPoint: {
-        x: middle.x + perpendicular.x * 19,
-        y: middle.y + perpendicular.y * 19,
+        x: middle.x + canonicalPerpendicular.x * 19,
+        y: middle.y + canonicalPerpendicular.y * 19,
       },
       isLoop: false,
       start,
@@ -161,8 +167,8 @@ export function computeEdgeGeometry(model: GraphModel, edge: GraphEdge): EdgeGeo
   }
 
   const control = {
-    x: middle.x + perpendicular.x * bend,
-    y: middle.y + perpendicular.y * bend,
+    x: middle.x + canonicalPerpendicular.x * bend,
+    y: middle.y + canonicalPerpendicular.y * bend,
   };
   const startDirection = normalize(control.x - source.x, control.y - source.y);
   const endDirection = normalize(control.x - target.x, control.y - target.y);
